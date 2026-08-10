@@ -1,0 +1,25 @@
+Package: omopReportToolkit
+Type: Package
+Title: Render-Only Manuscript Report Helpers for OMOP CDM Studies
+Version: 0.1.0
+Authors@R: person("Duke Vascular Informatics", role = c("aut", "cre"),
+    email = "noreply@duke.edu")
+Description: Greyscale-safe manuscript figure styling and generic Word-report
+    helpers (bibliography formatting, calibration statistics, ROC/calibration
+    figures, a styled Table 1 flextable, docx post-processing) shared across
+    OMOP CDM study repos. Consumes only result artifacts already on disk
+    (CSVs, person-level score tables) -- never a database connection. Per-study
+    report composition (which tables, which figures, clinical narrative) is
+    intentionally NOT part of this package; it lives in each study repo as its
+    own report_spec.R that calls into this one.
+License: GPL-3
+Encoding: UTF-8
+Depends: R (>= 4.1.0)
+Imports:
+    ggplot2 (>= 3.0.0),
+    officer,
+    flextable,
+    patchwork,
+    pROC
+Suggests:
+    ragg

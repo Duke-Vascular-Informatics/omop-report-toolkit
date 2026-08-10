@@ -1,0 +1,43 @@
+# =============================================================================
+# NAMESPACE — hand-written, not roxygen2-generated.
+#
+# The dev container this package was authored in does not have roxygen2 /
+# devtools installed, and this package is small and stable enough that
+# hand-maintaining this file is less risky than adding a build dependency.
+# If you add a new exported function or a new bare (unqualified) call to a
+# non-base package inside R/*.R, update this file by hand to match — running
+# devtools::document() will DELETE these entries and regenerate from roxygen
+# tags, which do not exist here, silently breaking the package.
+# =============================================================================
+
+# ---- Exports — callable from a study's report_spec.R via library() --------
+export(theme_manuscript)
+export(save_figure)
+export(.gs_scales)
+export(.gs_series_palette)
+export(.calibration_axis_limits)
+export(.calibration_reference_line)
+export(.png_aspect)
+export(.append_references_section)
+export(.compute_ece)
+export(.save_roc_plot)
+export(.save_dual_roc_plot)
+export(.save_calibration_plot_from_table)
+export(.save_calibration_plot_from_vectors)
+export(.save_dual_calibration_plot)
+export(.build_table1)
+export(.strip_heading_autonumbering)
+
+# ---- Imports — every bare (non `::`-qualified) call to another package in --
+# ---- R/*.R must have its function named here, or it fails at runtime with --
+# ---- "could not find function", regardless of what the CALLER has loaded. -
+importFrom(officer, body_add_par, fp_border)
+importFrom(flextable, flextable, set_header_labels, bold, fontsize, font,
+           width, align, bg, color, hline, border_outer,
+           set_table_properties, padding)
+importFrom(stats, quantile)
+importFrom(utils, read.csv)
+
+# ggplot2, patchwork, and pROC are used only via explicit `pkg::fn()` calls
+# throughout R/*.R (verified — no bare calls), so they need Imports: in
+# DESCRIPTION (a caller must be able to install them) but no importFrom here.
