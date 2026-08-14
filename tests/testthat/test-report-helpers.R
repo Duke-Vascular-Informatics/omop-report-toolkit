@@ -245,9 +245,9 @@ test_that(".strip_heading_autonumbering() removes numPr from heading styles", {
              xml, perl = TRUE)
   writeLines(xml, styles, useBytes = TRUE)
   old <- setwd(work)
+  on.exit(setwd(old), add = TRUE)
   utils::zip("rebuilt.docx", list.files(".", recursive = TRUE, all.files = TRUE,
                                         no.. = TRUE), flags = "-q -X")
-  setwd(old)
   file.copy(file.path(work, "rebuilt.docx"), path, overwrite = TRUE)
 
   # Precondition: the numbering really is present before we strip it.
