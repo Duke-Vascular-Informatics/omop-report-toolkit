@@ -1,0 +1,74 @@
+# =============================================================================
+# .github/workflows/R-CMD-check.yaml
+#
+# Runs `R CMD check` and lintr on every push/PR into main.
+#
+# This is the FIRST CI this package has ever had (see
+# Duke-Vascular-Informatics/omop-dev-workspace#158). It intentionally does NOT
+# follow the workspace's usual ENABLE_R_CI-gated ci.yml pattern used in the
+# `-desc`/`-val`/`-synth` study repos: those gate CI behind a repository
+# variable that defaults unset, so copies of that template have never actually
+# run (see workspace issue #144). This package has no such gate — it runs on
+# every push/PR from day one.
+#
+# Actions are pinned to commit SHAs, not floating tags (workspace issue #159),
+# since this repo has Actions enabled already and this is its first workflow.
+# =============================================================================
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+name: R-CMD-check
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  R-CMD-check:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: r-lib/actions/setup-pandoc@5cc1f0d89c5281319eaa97952fe65a6d55e6f816 # v2
+
+      - uses: r-lib/actions/setup-r@5cc1f0d89c5281319eaa97952fe65a6d55e6f816 # v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@5cc1f0d89c5281319eaa97952fe65a6d55e6f816 # v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+
+      - uses: r-lib/actions/check-r-package@5cc1f0d89c5281319eaa97952fe65a6d55e6f816 # v2
+        with:
+          upload-snapshots: true
+          build_args: 'c("--no-manual", "--compact-vignettes=gs+qpdf")'
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: r-lib/actions/setup-r@5cc1f0d89c5281319eaa97952fe65a6d55e6f816 # v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@5cc1f0d89c5281319eaa97952fe65a6d55e6f816 # v2
+        with:
+          extra-packages: any::lintr
+          needs: lint
+
+      - name: Lint
+        run: lintr::lint_package()
+        shell: Rscript {0}

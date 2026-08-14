@@ -35,7 +35,7 @@ importFrom(officer, body_add_par, fp_border)
 importFrom(flextable, flextable, set_header_labels, bold, fontsize, font,
            width, align, bg, color, hline, border_outer,
            set_table_properties, padding)
-importFrom(stats, quantile)
+importFrom(stats, aggregate, quantile, setNames)
 importFrom(utils, read.csv)
 
 # ggplot2, patchwork, and pROC are used only via explicit `pkg::fn()` calls

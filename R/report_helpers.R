@@ -6,24 +6,24 @@
 # Table 1 flextable, and Word docx post-processing.
 #
 # WHAT THIS FILE IS NOT
-#   Nothing study-specific lives here — no cohort definitions, no score names,
+#   Nothing study-specific lives here - no cohort definitions, no score names,
 #   no clinical narrative, no fetch_*_from_omop() queries, no database access
 #   of any kind. Per-study report composition (which tables, which figures, in
 #   what order, with what narrative) belongs in the STUDY repo as its own
 #   report_spec.R, calling into this package. If a function here starts
-#   growing a study-specific branch, that is a sign it should not be here —
+#   growing a study-specific branch, that is a sign it should not be here -
 #   split it, and keep the generic core.
 #
 # EXTRACTED FROM
 #   pad-amp-nhd-val's R/report_helpers.R (2026-08-10), the first repo where
 #   these functions reached their current, greyscale-safe form (#42/#43,
 #   docs/MIGRATION_PLAN_REPO_SPLIT.md Phase 1). Function bodies are
-#   byte-identical to that source — only PACKAGE-REQUIRED changes were made:
+#   byte-identical to that source - only PACKAGE-REQUIRED changes were made:
 #   library() calls removed (dependencies declared in DESCRIPTION instead) and
 #   bare calls to non-base functions given `::` prefixes or NAMESPACE imports,
 #   since a package has no implicit access to whatever the CALLER happened to
 #   library() first. No behavior was changed. If you find a difference from
-#   the source repo beyond that, it is a bug — file it.
+#   the source repo beyond that, it is a bug - file it.
 #
 # DEPENDS ON R/figure_style.R (same package): theme_manuscript(), save_figure(),
 #   .gs_scales(), .calibration_axis_limits(), .calibration_reference_line().
@@ -58,7 +58,24 @@
 .compute_ece <- function(y, p, n_bins = 10) {
   p <- pmin(pmax(p, 0.0001), 0.9999)
   breaks <- quantile(p, probs = seq(0, 1, length.out = n_bins + 1), na.rm = TRUE)
-  if (length(unique(breaks)) < 3) breaks <- c(0, 1)
+
+  # FIXED 2026-08-14 - found by the new unit tests (tests/testthat/test-report-helpers.R,
+  # ".compute_ece() clamps probabilities away from 0 and 1").
+  #
+  # De-duplicate BEFORE the < 3 guard. Quantile breaks collapse whenever the
+  # prediction distribution is concentrated, and the old code only handled the
+  # fully-degenerate case: with a bimodal set (e.g. every prediction near 0 or
+  # near 1, clamped to 0.0001 / 0.9999) the breaks come back as
+  # c(0.0001, 0.0001, 0.5, 0.9999, 0.9999) - five values but only THREE unique.
+  # `length(unique(breaks)) < 3` is therefore FALSE, so no fallback fired, and
+  # cut() aborted the whole report with "'breaks' are not unique".
+  #
+  # unique() preserves order, and quantile() returns sorted values, so the
+  # deduplicated vector is still a valid ascending breaks spec - just with fewer
+  # bins than requested, which is the correct behaviour for a concentrated
+  # distribution.
+  breaks <- unique(breaks)
+  if (length(breaks) < 3) breaks <- c(0, 1)
 
   p_binned <- cut(p, breaks = breaks, include.lowest = TRUE)
 
@@ -68,7 +85,7 @@
     FUN = function(x) c(n = length(x), mean = mean(x, na.rm = TRUE))
   )
 
-  # FIXED 2026-08-10 — this function computed nothing usable before this fix,
+  # FIXED 2026-08-10 - this function computed nothing usable before this fix,
   # in a way that had never been caught: it is reachable only from
   # .report_word_simple(), a legacy entry point neither study's real pipeline
   # calls (both call .report_prognostic() via generate_manuscript_report()).
@@ -78,11 +95,11 @@
   #
   #   1. aggregate() with a multi-column response (cbind(predicted, observed))
   #      and a vector-valued FUN returns EACH response column as its own
-  #      [n_bins x 2] matrix (columns "n", "mean") — not a list of vectors.
+  #      [n_bins x 2] matrix (columns "n", "mean") - not a list of vectors.
   #      do.call(rbind, <matrix>) errors ("second argument must be a list");
   #      the original code assumed a list-column shape that never occurs here.
   #   2. Even past that, only ece_data[, 2] ("predicted") was ever passed to
-  #      cbind() — "observed" was silently dropped — while colnames()
+  #      cbind() - "observed" was silently dropped - while colnames()
   #      immediately after assigned FIVE names to what was structurally a
   #      THREE-column object (bin + 2 predicted stats). mean_obs and n_obs
   #      were never computed at all; ece_value's formula referencing them
@@ -152,7 +169,7 @@
     ggplot2::coord_equal() +
     theme_manuscript()
 
-  # Single black series — already greyscale-safe with no colour/linetype
+  # Single black series - already greyscale-safe with no colour/linetype
   # mapping needed. Still routed through save_figure() for the 600 dpi
   # TIFF + vector PDF that journal submission requires.
   save_figure(p, output_folder, "roc_curve.png", width = 7, height = 5)
@@ -223,7 +240,7 @@
                                                colour = model, linetype = model)) +
     ggplot2::geom_path(linewidth = 1) +
     # geom_line() is too dense along a smooth ROC curve for point shapes to
-    # read cleanly, so points are subsampled onto every 8th row per model —
+    # read cleanly, so points are subsampled onto every 8th row per model -
     # the shape channel is still present without cluttering the curve.
     ggplot2::geom_point(
       data = do.call(rbind, lapply(split(roc_df, roc_df$model), function(d) {
@@ -231,8 +248,8 @@
       })),
       ggplot2::aes(shape = model), size = 1.6
     ) +
-    # Chance line: thin grey, dashed. No model curve above uses "dashed" —
-    # slots 1-3 are solid/longdash/dotdash — so this can never be mistaken
+    # Chance line: thin grey, dashed. No model curve above uses "dashed" -
+    # slots 1-3 are solid/longdash/dotdash - so this can never be mistaken
     # for a model curve, unlike the old dotted reference line that collided
     # with a dotted model curve on the calibration overlay.
     ggplot2::geom_abline(intercept = 0, slope = 1,
@@ -241,7 +258,7 @@
     ggplot2::labs(
       title    = "Receiver Operating Characteristic Curves",
       subtitle = subtitle,
-      x        = "False Positive Rate (1 − Specificity)",
+      x        = "False Positive Rate (1 - Specificity)",
       y        = "True Positive Rate (Sensitivity)"
     ) +
     ggplot2::xlim(0, 1) + ggplot2::ylim(0, 1) +
@@ -264,7 +281,7 @@
     return(NULL)
   }
 
-  # Single black series — no colour/linetype mapping needed. The reference
+  # Single black series - no colour/linetype mapping needed. The reference
   # diagonal is solid grey80 (not dashed) so it never risks being confused
   # with a data series linetype if this helper's output is ever compared
   # side-by-side with the multi-curve .save_dual_calibration_plot() below.
@@ -399,7 +416,7 @@
   # Standard addition to a calibration figure (cf. rms::val.prob): shows how
   # much of the cohort actually sits at each predicted-risk value, since a
   # calibration curve computed from a handful of patients in a bin (as is the
-  # case here — some bins hold under 10 patients, see calibration_table_*.csv)
+  # case here - some bins hold under 10 patients, see calibration_table_*.csv)
   # can look deceptively smooth. Drawn as one row per model, sharing the
   # calibration panel's x-axis, and stacked underneath with patchwork.
   dist_df <- NULL
@@ -431,12 +448,12 @@
   }
 
   # Data-driven square axis limits (shared with every other calibration plot
-  # in the repo — see .calibration_axis_limits() in R/figure_style.R for why
+  # in the repo - see .calibration_axis_limits() in R/figure_style.R for why
   # the old fixed [0, 1] panel was replaced).
   #
   # The per-patient risks in dist_df MUST be included, not just the calibration
   # table values. The table holds bin MEANS, so individual patients routinely
-  # sit outside its range — in this cohort the lookup table spans 0.111-0.643
+  # sit outside its range - in this cohort the lookup table spans 0.111-0.643
   # while individual predicted risks reach 0.745. Sizing the axis on the table
   # alone put those patients outside the scale limits, and because both panels
   # share these limits, ggplot silently DROPPED them from the distribution
@@ -530,7 +547,7 @@
     # Figure height is DERIVED from the series count, not a fixed number
     # tuned against one dataset. The calibration panel is square by
     # construction (aspect.ratio = 1 above), so the only things that vary with
-    # the number of curves are the legend block and the strip's row count —
+    # the number of curves are the legend block and the strip's row count -
     # both linear in n_series. A hardcoded height only produced a square panel
     # at exactly 4 curves; at 2 it left a band of dead whitespace.
     #

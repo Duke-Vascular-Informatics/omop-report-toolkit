@@ -2,3 +2,5 @@
 ^\.git$
 ^\.gitignore$
 ^README\.md$
+^\.github$
+^\.lintr$

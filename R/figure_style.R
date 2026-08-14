@@ -9,14 +9,14 @@
 #   viewer. Neither is what a journal receives.
 #
 #   Manuscript figures come from an OPTIONAL custom step / Word report layered
-#   on top of a study's analysis — the pad-amp-ed-desc hybrid pattern. If a
+#   on top of a study's analysis - the pad-amp-ed-desc hybrid pattern. If a
 #   study has no such step, it never calls library(omopReportToolkit) and this
 #   file costs nothing. If it does, every figure it draws should go through
 #   here rather than hand-rolling a new palette.
 #
 # WHY IT EXISTS
-#   Journals commonly print in greyscale, and the default reflex — one hue per
-#   series — fails badly there. Hues chosen to look distinct on screen tend to
+#   Journals commonly print in greyscale, and the default reflex - one hue per
+#   series - fails badly there. Hues chosen to look distinct on screen tend to
 #   have near-identical LUMINANCE, so desaturating collapses them to a single
 #   indistinguishable grey. In the study this was extracted from
 #   (pad-amp-nhd-val, #42/#43), a four-curve calibration overlay used navy /
@@ -31,19 +31,19 @@
 #   photocopy and not merely a clean PDF desaturation.
 #
 #   Never assign per-figure hex colours to a new series. Add a slot to
-#   .gs_series_palette instead — that is also what keeps figures agreeing with
+#   .gs_series_palette instead - that is also what keeps figures agreeing with
 #   each other. Before this table existed, a study's ROC and calibration
 #   figures had drifted onto different palettes and the SAME model appeared
 #   orange on one figure and green on the next.
 #
 # EXPORTS
-#   .gs_series_palette            — the fixed grey/linetype/shape encoding table
-#   .gs_scales()                  — scale_colour/linetype/shape triple for N series
-#   theme_manuscript()            — shared ggplot2 theme, print-legible base size
-#   save_figure()                 — writes a ggplot as matched 600dpi TIFF + PDF + PNG
-#   .calibration_axis_limits()    — data-driven square limits for calibration plots
-#   .calibration_reference_line() — the shared perfect-calibration diagonal
-#   .png_aspect()                 — a saved PNG's height/width ratio, for
+#   .gs_series_palette            - the fixed grey/linetype/shape encoding table
+#   .gs_scales()                  - scale_colour/linetype/shape triple for N series
+#   theme_manuscript()            - shared ggplot2 theme, print-legible base size
+#   save_figure()                 - writes a ggplot as matched 600dpi TIFF + PDF + PNG
+#   .calibration_axis_limits()    - data-driven square limits for calibration plots
+#   .calibration_reference_line() - the shared perfect-calibration diagonal
+#   .png_aspect()                 - a saved PNG's height/width ratio, for
 #                                    officer::body_add_img() sizing
 #
 # PACKAGE NOTES (read before editing)
@@ -54,12 +54,12 @@
 #
 #   1. No library() calls here. ggplot2 and patchwork are declared in
 #      DESCRIPTION's Imports and referenced via `::` throughout, per normal
-#      package hygiene — calling library() inside a package silently changes
+#      package hygiene - calling library() inside a package silently changes
 #      the caller's search path, which is exactly the kind of surprise a
 #      shared dependency must not introduce.
 #   2. ragg availability is checked with a FUNCTION (.have_ragg()), not a
 #      cached top-level variable. A package's R/ files run once, at BUILD
-#      time, not once per library() call — caching
+#      time, not once per library() call - caching
 #      `requireNamespace("ragg", ...)` into a top-level object the way a
 #      source()d script safely could would freeze whatever was true on the
 #      machine that built the package, not the machine that later installs
@@ -70,7 +70,7 @@
 # PACKAGE NOTES above).
 #
 # It is the preferred TIFF device (best text rendering), but it compiles
-# against system libraries — libpng, libtiff, freetype, harfbuzz, fribidi.
+# against system libraries - libpng, libtiff, freetype, harfbuzz, fribidi.
 # Some analytic environments (e.g. a PRCC bundle installer that only does
 # `module load R` with no system-package provisioning) may legitimately fail
 # to install it. A hard dependency would then abort the entire analysis at
@@ -83,7 +83,7 @@
 .have_ragg <- function() {
   ok <- requireNamespace("ragg", quietly = TRUE)
   if (!ok) {
-    message("[figures] ragg not available — using grDevices::tiff() for TIFF output. ",
+    message("[figures] ragg not available - using grDevices::tiff() for TIFF output. ",
             "Still 600 dpi LZW; text rendering may differ slightly.")
   }
   ok
@@ -93,8 +93,8 @@
 # -----------------------------------------------------------------------------
 # .gs_series_palette
 #
-# Fixed, ordered greyscale encoding table. Slot order is significant — the
-# Nth level of a factor always gets the Nth row, never chosen by name — so
+# Fixed, ordered greyscale encoding table. Slot order is significant - the
+# Nth level of a factor always gets the Nth row, never chosen by name - so
 # that e.g. "Iannuzzi (Lookup)" is always solid/filled-circle/black no matter
 # which other series are present in a given figure (2-, 3-, and 4-curve
 # variants of a calibration overlay all share slots 1-2 for two shared
@@ -128,10 +128,10 @@
 # triple for a set of factor levels, sliced from .gs_series_palette in order.
 #
 # Arguments:
-#   levels — character vector of factor levels, in the order they should be
+#   levels - character vector of factor levels, in the order they should be
 #            assigned palette slots (i.e. the same order used to build the
 #            plotting data frame's factor column).
-#   slots  — optional integer vector, same length as `levels`, naming which
+#   slots  - optional integer vector, same length as `levels`, naming which
 #            .gs_series_palette row each level takes. Defaults to 1, 2, 3, ...
 #
 #            Pass this explicitly whenever some series are semantically
@@ -139,12 +139,12 @@
 #            regardless of how many primary series precede them. A decision
 #            curve is the motivating case: with four models the defaults
 #            happen to be right (4 models + 2 references == slots 1-6), but
-#            with one model "Treat all" would otherwise inherit slot 2 —
-#            black, filled triangle — and render MORE prominently than the
+#            with one model "Treat all" would otherwise inherit slot 2 -
+#            black, filled triangle - and render MORE prominently than the
 #            model curve it is supposed to sit behind. Callers should write
 #            slots = c(seq_along(model_names), 5, 6).
 #
-# Returns a named list with elements $colour, $linetype, $shape — each a
+# Returns a named list with elements $colour, $linetype, $shape - each a
 # ggplot2 scale object, meant to be added to a plot with `+`. Errors if more
 # levels are requested than the palette has slots (rather than silently
 # recycling colours, which would defeat the whole point of this table).
@@ -177,7 +177,7 @@
 #
 # Shared ggplot2 theme for every manuscript figure. A thin wrapper over
 # theme_minimal() at a print-legible base size (9pt, sized for a single
-# journal column at final print scale — ggplot2's default sizing is tuned for
+# journal column at final print scale - ggplot2's default sizing is tuned for
 # on-screen viewing, not a ~3.3in column width) with the legend pinned to the
 # bottom, since every greyscale overlay figure carries a legend (shape +
 # linetype key) rather than relying on colour alone to be self-explanatory.
@@ -200,25 +200,25 @@ theme_manuscript <- function(base_size = 9) {
 # print-resolution raster (600 dpi TIFF) and/or vector (PDF) figures; 150 dpi
 # PNG is only adequate for on-screen review, so this writes all three from one
 # ggplot object:
-#   <file_stem>.tiff — 600 dpi, LZW-compressed, via ragg::agg_tiff when ragg
+#   <file_stem>.tiff - 600 dpi, LZW-compressed, via ragg::agg_tiff when ragg
 #                       is installed, else grDevices::tiff() (see .have_ragg())
-#   <file_stem>.pdf  — vector, via the Cairo PDF device (scales losslessly)
-#   <file_stem>.png  — 150 dpi, kept for on-screen review and for
+#   <file_stem>.pdf  - vector, via the Cairo PDF device (scales losslessly)
+#   <file_stem>.png  - 150 dpi, kept for on-screen review and for
 #                       officer::body_add_img(), which cannot embed TIFF/PDF
 #
 # Arguments:
-#   plot          — a ggplot object
-#   output_folder — directory to write into (created if missing)
-#   file_name     — base file name; any extension is ignored/replaced (e.g.
+#   plot          - a ggplot object
+#   output_folder - directory to write into (created if missing)
+#   file_name     - base file name; any extension is ignored/replaced (e.g.
 #                   passing "roc_curve.png" and "roc_curve.tiff" both produce
 #                   the same three-file set with stem "roc_curve")
-#   width, height — figure size in inches
-#   dpi           — resolution for the TIFF; PNG is always saved at 150 dpi
+#   width, height - figure size in inches
+#   dpi           - resolution for the TIFF; PNG is always saved at 150 dpi
 #                   since it is a screen/Word-embedding artifact, not a
 #                   submission file
 #
 # Returns the path to the .png file, so callers that embed the returned path
-# into a Word report via officer::body_add_img() need no changes — the
+# into a Word report via officer::body_add_img() need no changes - the
 # TIFF/PDF are written as a side effect.
 # -----------------------------------------------------------------------------
 save_figure <- function(plot, output_folder, file_name, width, height, dpi = 600) {
@@ -264,7 +264,7 @@ save_figure <- function(plot, output_folder, file_name, width, height, dpi = 600
 # most of the panel whenever a cohort's curves live in a narrower range (e.g.
 # x [0.09, 0.75] / y [0, 0.50]), cramming every curve into one corner. Zooming
 # to the data is the single biggest legibility win here, independent of the
-# greyscale requirement — and it matters MORE in greyscale, because curves
+# greyscale requirement - and it matters MORE in greyscale, because curves
 # that overlap in a cramped corner are exactly the ones grey levels alone
 # cannot separate.
 #
@@ -273,9 +273,9 @@ save_figure <- function(plot, output_folder, file_name, width, height, dpi = 600
 # visually misleading.
 #
 # Arguments:
-#   values — numeric vector of every value that must be visible (typically
+#   values - numeric vector of every value that must be visible (typically
 #            c(predicted, observed) across all curves)
-#   pad_frac — fractional padding beyond the data range (default 8%)
+#   pad_frac - fractional padding beyond the data range (default 8%)
 #
 # Returns a list with $limits (length-2 numeric, clamped to [0, 1] since risk
 # and observed rate are probabilities) and $breaks (pretty breaks inside them).
@@ -316,7 +316,7 @@ save_figure <- function(plot, output_folder, file_name, width, height, dpi = 600
 # aspect ratio the figure was actually saved at, or the image is stretched.
 # Hardcoding the ratio at the embed site duplicates a number that lives in the
 # plotting code, and silently goes wrong the moment a figure's dimensions
-# become dynamic — e.g. a dual-calibration plot that sizes itself from the
+# become dynamic - e.g. a dual-calibration plot that sizes itself from the
 # number of curves. Reading the real file cannot drift.
 #
 # Parses the IHDR chunk (PNG spec: 8-byte signature, 4-byte length, 4-byte
@@ -328,7 +328,7 @@ save_figure <- function(plot, output_folder, file_name, width, height, dpi = 600
 # -----------------------------------------------------------------------------
 .png_aspect <- function(path) {
   # Callers pass the return value of a plotting helper, which is NULL when the
-  # figure could not be built — file.exists(NULL) is logical(0) and would make
+  # figure could not be built - file.exists(NULL) is logical(0) and would make
   # the `if` error out, so screen that before touching the filesystem.
   if (is.null(path) || length(path) != 1L || is.na(path) ||
       !nzchar(path) || !file.exists(path)) {

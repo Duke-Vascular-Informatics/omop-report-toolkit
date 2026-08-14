@@ -1,0 +1,17 @@
+linters: linters_with_defaults(
+    # SQL/URL strings and roxygen comments routinely exceed 80 chars — use 120,
+    # matching the study-repo convention in this workspace.
+    line_length_linter(120L),
+
+    # NAMESPACE is hand-maintained (see its header comment) rather than
+    # roxygen2-generated, which is unconventional enough to flag but is a
+    # deliberate choice, not a lint target.
+    object_name_linter = NULL,
+
+    # .strip_heading_autonumbering() is a necessarily branchy docx XML rewrite;
+    # raise the limit to avoid noise on it.
+    cyclocomp_linter(complexity_limit = 30L)
+  )
+exclusions: list(
+    "renv"
+  )
