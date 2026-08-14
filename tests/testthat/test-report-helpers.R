@@ -167,8 +167,10 @@ test_that(".append_references_section() writes numbered Vancouver-format referen
 
   # Spot-check the full Vancouver assembly, including the doi: prefix.
   expect_true(any(grepl(
-    "1\\. Anderson DJ, Podgorny K\\. Strategies to prevent SSI\\. .*2014;35\\(6\\):605-27\\. doi:10\\.1086/676022",
-    text)))
+    paste0("1\\. Anderson DJ, Podgorny K\\. Strategies to prevent SSI\\. .*",
+           "2014;35\\(6\\):605-27\\. doi:10\\.1086/676022"),
+    text
+  )))
 })
 
 
@@ -230,7 +232,8 @@ test_that(".strip_heading_autonumbering() removes numPr from heading styles", {
 
   # Inject auto-numbering into a heading style so there is something to strip,
   # mimicking a corporate template.
-  work <- tempfile("docx_inject_"); dir.create(work)
+  work <- tempfile("docx_inject_")
+  dir.create(work)
   on.exit(unlink(work, recursive = TRUE), add = TRUE)
   utils::unzip(path, exdir = work)
   styles <- file.path(work, "word", "styles.xml")
