@@ -66,7 +66,9 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@5cc1f0d89c5281319eaa97952fe65a6d55e6f816 # v2
         with:
-          extra-packages: any::lintr
+          # cyclocomp is a runtime dependency of cyclocomp_linter(), which
+          # .lintr enables explicitly -- lintr itself does not pull it in.
+          extra-packages: any::lintr, any::cyclocomp
           needs: lint
 
       - name: Lint
