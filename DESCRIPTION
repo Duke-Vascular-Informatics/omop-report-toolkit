@@ -22,4 +22,6 @@ Imports:
     patchwork,
     pROC
 Suggests:
-    ragg
+    ragg,
+    testthat (>= 3.1.5)
+Config/testthat/edition: 3
