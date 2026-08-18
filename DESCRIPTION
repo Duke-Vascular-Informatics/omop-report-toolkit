@@ -10,8 +10,9 @@ Description: Greyscale-safe manuscript figure styling and generic Word-report
     OMOP CDM study repos. Consumes only result artifacts already on disk
     (CSVs, person-level score tables) -- never a database connection. Per-study
     report composition (which tables, which figures, clinical narrative) is
-    intentionally NOT part of this package; it lives in each study repo as its
-    own report_spec.R that calls into this one.
+    intentionally NOT part of this package; it lives in that study's own
+    <study>-report repo (scaffolded from omop-report-template) that calls
+    into this one.
 License: GPL-3
 Encoding: UTF-8
 Depends: R (>= 4.1.0)

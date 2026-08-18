@@ -24,12 +24,19 @@ VPN, no credentials, and no database driver.
 Nothing study-specific lives here: no cohort definitions, no score names, no
 clinical narrative, no `fetch_*_from_omop()` queries. Per-study report
 composition — which tables, which figures, in what order, with what
-narrative — belongs in the *study* repo as its own `report_spec.R`, which
-calls into this package.
+narrative — belongs in that study's own `<study>-report` repo (bucket 3b of
+`docs/MIGRATION_PLAN_REPO_SPLIT.md` in `omop-dev-workspace`, scaffolded from
+[`omop-report-template`](https://github.com/Duke-Vascular-Informatics/omop-report-template)),
+which calls into this package. **Not** a `report_spec.R` file inside the
+analysis-core repo — that was this plan's original design and was reversed
+2026-08-11 specifically because a report repo needs to be shareable and
+report-toolkit-consuming independent of the analysis-core repo's own
+sharing profile; see the migration plan's "What NOT to do" section.
 
 If you find yourself adding a study-specific branch to a function here, that
 is a sign the function should not be here. Split it: the generic core stays,
-the study-specific part moves to that study's `report_spec.R`.
+the study-specific part moves to that study's `<study>-report` repo (its
+`R/report_dispatch.R` / `R/report_helpers.R`).
 
 ## Installation
 

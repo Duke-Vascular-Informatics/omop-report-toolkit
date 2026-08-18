@@ -10,7 +10,7 @@
 # tags, which do not exist here, silently breaking the package.
 # =============================================================================
 
-# ---- Exports — callable from a study's report_spec.R via library() --------
+# ---- Exports — callable from a study's <study>-report repo via library() --
 export(theme_manuscript)
 export(save_figure)
 export(.gs_scales)

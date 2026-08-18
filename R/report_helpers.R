@@ -9,10 +9,11 @@
 #   Nothing study-specific lives here - no cohort definitions, no score names,
 #   no clinical narrative, no fetch_*_from_omop() queries, no database access
 #   of any kind. Per-study report composition (which tables, which figures, in
-#   what order, with what narrative) belongs in the STUDY repo as its own
-#   report_spec.R, calling into this package. If a function here starts
-#   growing a study-specific branch, that is a sign it should not be here -
-#   split it, and keep the generic core.
+#   what order, with what narrative) belongs in that study's own
+#   <study>-report repo (scaffolded from omop-report-template), calling into
+#   this package. If a function here starts growing a study-specific branch,
+#   that is a sign it should not be here - split it, and keep the generic
+#   core.
 #
 # EXTRACTED FROM
 #   pad-amp-nhd-val's R/report_helpers.R (2026-08-10), the first repo where
