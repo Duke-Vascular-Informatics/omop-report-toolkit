@@ -105,6 +105,17 @@
 # Slots 5-6: reserved for non-model reference strategies (e.g. a decision
 #   curve's "Treat all" / "Treat none"), which must be visually subordinate
 #   (lighter grey, undecorated shapes) to the primary curves.
+# Slots 7-8: added 2026-08-30 after a real (non-synthetic) report needed 7
+#   series for the first time -- a by-year trend figure's "indication" panel,
+#   which on synthetic data never exceeded 3 non-zero categories (several
+#   indication categories were zero-count there) but on real data can show
+#   all 8 (Claudication/Rest pain/Tissue loss/Trauma/Access complication/
+#   Exposure for endovascular procedure/ECMO/Asymptomatic). These callers use
+#   the default seq_along() slot assignment (no primary/reference distinction
+#   the way an overlay-family caller has), so slots 7-8 don't need to honor
+#   the tiered "primary vs. reference" semantics above -- just stay visually
+#   distinct from slots 1-6. A 4th grey tier (grey30, between black and
+#   grey45) plus two unused shapes accomplish that.
 #
 #   slot  colour   linetype   shape                                   reads as
 #   1     black    solid      16 (filled circle)                      primary, filled
@@ -113,11 +124,13 @@
 #   4     grey45   dotted     5  (open diamond)                       secondary, hollow
 #   5     grey70   solid      1  (open circle)                        reference, hollow
 #   6     grey70   dashed     2  (open triangle)                      reference, hollow
+#   7     black    twodash    15 (filled square)                      extra series, filled
+#   8     grey30   solid      18 (filled diamond)                     extra series, filled
 # -----------------------------------------------------------------------------
 .gs_series_palette <- data.frame(
-  colour   = c("black", "black", "grey45", "grey45", "grey70", "grey70"),
-  linetype = c("solid", "longdash", "dotdash", "dotted", "solid", "dashed"),
-  shape    = c(16, 17, 0, 5, 1, 2),
+  colour   = c("black", "black", "grey45", "grey45", "grey70", "grey70", "black", "grey30"),
+  linetype = c("solid", "longdash", "dotdash", "dotted", "solid", "dashed", "twodash", "solid"),
+  shape    = c(16, 17, 0, 5, 1, 2, 15, 18),
   stringsAsFactors = FALSE
 )
 
