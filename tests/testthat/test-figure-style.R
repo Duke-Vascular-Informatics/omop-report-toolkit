@@ -19,7 +19,7 @@ test_that(".gs_series_palette keeps the invariants the greyscale scheme relies o
   # The whole point of this table is redundant encoding across three channels,
   # so a row must never be missing one of them.
   expect_true(all(c("colour", "linetype", "shape") %in% names(.gs_series_palette)))
-  expect_equal(nrow(.gs_series_palette), 6L)
+  expect_equal(nrow(.gs_series_palette), 8L)
 
   # Slots must be distinguishable in PRINT, not just on screen: no two rows may
   # share both colour and linetype, or they collapse in greyscale — the exact
@@ -72,10 +72,11 @@ test_that(".gs_scales() honours explicit slots so subordinate series stay subord
 
 
 test_that(".gs_scales() errors rather than silently recycling or mis-indexing", {
-  # More series than the table defines. Recycling here would defeat the entire
-  # purpose of the palette, so this must be a hard error.
+  # More series than the table defines (8 slots as of 2026-08-30). Recycling
+  # here would defeat the entire purpose of the palette, so this must be a
+  # hard error.
   expect_error(
-    .gs_scales(paste("Model", 1:7)),
+    .gs_scales(paste("Model", 1:9)),
     "greyscale-safe slots",
     fixed = FALSE
   )
@@ -87,8 +88,26 @@ test_that(".gs_scales() errors rather than silently recycling or mis-indexing", 
   )
 
   # Out-of-range slot indices, both directions.
-  expect_error(.gs_scales(c("A"), slots = c(0)),  "must index rows 1-6")
-  expect_error(.gs_scales(c("A"), slots = c(99)), "must index rows 1-6")
+  expect_error(.gs_scales(c("A"), slots = c(0)),  "must index rows 1-8")
+  expect_error(.gs_scales(c("A"), slots = c(99)), "must index rows 1-8")
+})
+
+
+test_that(".gs_scales() supports 7-8 series (added 2026-08-30)", {
+  # Regression test for the real (non-synthetic) report that first needed 7
+  # series -- a by-year trend figure's "indication" panel, which on synthetic
+  # data never exceeded 3 non-zero categories. Must not error, and the two
+  # new slots must stay visually distinct from every other row (no duplicate
+  # colour+linetype combo -- the general invariant test above already covers
+  # this for all 8 rows, but assert it explicitly here too since that's the
+  # exact failure mode this addition risked reintroducing).
+  levels <- paste("Series", 1:8)
+  scales <- .gs_scales(levels)
+  expect_equal(unname(scales$colour$palette(8)), .gs_series_palette$colour)
+  expect_equal(unname(scales$shape$palette(8)),  .gs_series_palette$shape)
+
+  combos <- paste(.gs_series_palette$colour[7:8], .gs_series_palette$linetype[7:8])
+  expect_false(any(combos %in% paste(.gs_series_palette$colour[1:6], .gs_series_palette$linetype[1:6])))
 })
 
 
