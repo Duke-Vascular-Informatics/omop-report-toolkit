@@ -117,6 +117,18 @@
 #   distinct from slots 1-6. A 4th grey tier (grey30, between black and
 #   grey45) plus two unused shapes accomplish that.
 #
+# Slots 9-10: added 2026-08-31 after the SAME "indication" panel grew from 8
+#   to 9 categories (pad-oler-ssi-prog merged Trauma + Access complication
+#   into one, then added Aneurysm/Dissection and Acute limb ischemia -- net
+#   +1) and hit this palette's limit again on a real report. All 6 named
+#   ggplot2 linetypes (solid/dashed/dotted/dotdash/longdash/twodash) are
+#   already used by slots 1-8, so slots 9-10 reuse linetypes already seen
+#   elsewhere in the table -- uniqueness comes from the FULL (colour,
+#   linetype, shape) combination, not the linetype alone, and every row
+#   below is still a combination no other row shares. Two slots added
+#   (not just the one needed right now) for headroom against the next
+#   report that adds one more category.
+#
 #   slot  colour   linetype   shape                                   reads as
 #   1     black    solid      16 (filled circle)                      primary, filled
 #   2     black    longdash   17 (filled triangle)                    primary, filled
@@ -126,11 +138,13 @@
 #   6     grey70   dashed     2  (open triangle)                      reference, hollow
 #   7     black    twodash    15 (filled square)                      extra series, filled
 #   8     grey30   solid      18 (filled diamond)                     extra series, filled
+#   9     grey15   dashed     3  (plus)                                extra series, filled
+#   10    black    dotted     4  (x)                                  extra series, filled
 # -----------------------------------------------------------------------------
 .gs_series_palette <- data.frame(
-  colour   = c("black", "black", "grey45", "grey45", "grey70", "grey70", "black", "grey30"),
-  linetype = c("solid", "longdash", "dotdash", "dotted", "solid", "dashed", "twodash", "solid"),
-  shape    = c(16, 17, 0, 5, 1, 2, 15, 18),
+  colour   = c("black", "black", "grey45", "grey45", "grey70", "grey70", "black", "grey30", "grey15", "black"),
+  linetype = c("solid", "longdash", "dotdash", "dotted", "solid", "dashed", "twodash", "solid", "dashed", "dotted"),
+  shape    = c(16, 17, 0, 5, 1, 2, 15, 18, 3, 4),
   stringsAsFactors = FALSE
 )
 
