@@ -21,7 +21,8 @@ Imports:
     officer,
     flextable,
     patchwork,
-    pROC
+    pROC,
+    devEMF
 Suggests:
     ragg,
     testthat (>= 3.1.5)

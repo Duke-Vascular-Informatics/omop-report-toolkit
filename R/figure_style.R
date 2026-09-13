@@ -224,29 +224,43 @@ theme_manuscript <- function(base_size = 9) {
 # save_figure()
 #
 # Single save path for every manuscript figure. Journal submission requires
-# print-resolution raster (600 dpi TIFF) and/or vector (PDF) figures; 150 dpi
-# PNG is only adequate for on-screen review, so this writes all three from one
-# ggplot object:
+# print-resolution raster (600 dpi TIFF) and/or vector (PDF) figures; this
+# writes all four from one ggplot object:
 #   <file_stem>.tiff - 600 dpi, LZW-compressed, via ragg::agg_tiff when ragg
 #                       is installed, else grDevices::tiff() (see .have_ragg())
 #   <file_stem>.pdf  - vector, via the Cairo PDF device (scales losslessly)
-#   <file_stem>.png  - 150 dpi, kept for on-screen review and for
-#                       officer::body_add_img(), which cannot embed TIFF/PDF
+#   <file_stem>.png  - 150 dpi, kept for on-screen review / archival
+#   <file_stem>.emf  - vector, via devEMF::emf() -- what's actually embedded
+#                       in the Word report (see below)
 #
 # Arguments:
 #   plot          - a ggplot object
 #   output_folder - directory to write into (created if missing)
 #   file_name     - base file name; any extension is ignored/replaced (e.g.
 #                   passing "roc_curve.png" and "roc_curve.tiff" both produce
-#                   the same three-file set with stem "roc_curve")
+#                   the same four-file set with stem "roc_curve")
 #   width, height - figure size in inches
 #   dpi           - resolution for the TIFF; PNG is always saved at 150 dpi
-#                   since it is a screen/Word-embedding artifact, not a
-#                   submission file
+#                   since it is a screen/archival artifact, not a submission
+#                   file (the EMF is the real embedding format now)
 #
-# Returns the path to the .png file, so callers that embed the returned path
-# into a Word report via officer::body_add_img() need no changes - the
-# TIFF/PDF are written as a side effect.
+# Returns the path to the .emf file. CHANGED 2026-09-13 (was the .png path):
+# figures embedded via officer::body_add_img() were rasterized at Word's
+# on-screen zoom level and looked visibly fuzzy at print/high-zoom, since PNG
+# is not scalable. officer::body_add_img() (this codebase's only embedding
+# call -- there is no separate body_add_image() in officer 0.7.6) special-
+# cases only the ".svg" extension (which it rasterizes back to PNG via rsvg
+# -- not actually a fix); any other extension, including ".emf", passes
+# straight through into external_img(), and the default docx template
+# already registers a "Default Extension="emf" ContentType="image/x-emf""
+# content type, so no other wiring is needed. Verified directly: built a
+# docx with officer::body_add_img(src = "<x>.emf"), including a patchwork-
+# combined plot (the DCA figure's own structure), and confirmed the .emf
+# lands correctly in word/media/ with no error. Every call site in
+# pad-amp-nhd-val-report already just does
+# `body_add_img(doc, src = save_figure(...), width=, height=)` with no
+# format-specific logic, so this return-value change alone fixes every
+# figure with zero caller changes.
 # -----------------------------------------------------------------------------
 save_figure <- function(plot, output_folder, file_name, width, height, dpi = 600) {
   if (!dir.exists(output_folder)) {
@@ -259,6 +273,7 @@ save_figure <- function(plot, output_folder, file_name, width, height, dpi = 600
   tiff_path <- file.path(output_folder, paste0(file_stem, ".tiff"))
   pdf_path  <- file.path(output_folder, paste0(file_stem, ".pdf"))
   png_path  <- file.path(output_folder, paste0(file_stem, ".png"))
+  emf_path  <- file.path(output_folder, paste0(file_stem, ".emf"))
 
   # Preferred device is ragg::agg_tiff; grDevices::tiff() is the fallback when
   # ragg could not be installed. Both write 600 dpi LZW. grDevices::tiff()
@@ -278,7 +293,15 @@ save_figure <- function(plot, output_folder, file_name, width, height, dpi = 600
   ggplot2::ggsave(png_path, plot, width = width, height = height, units = "in",
                   dpi = 150)
 
-  png_path
+  # devEMF::emf() is a standard grid graphics device (like pdf()/tiff()), so
+  # it takes a plain print(plot) between open/close rather than ggsave()'s
+  # device= argument -- ggplot2/patchwork objects both draw via grid and need
+  # no special handling here.
+  devEMF::emf(emf_path, width = width, height = height)
+  print(plot)
+  grDevices::dev.off()
+
+  emf_path
 }
 
 
