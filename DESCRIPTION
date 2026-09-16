@@ -22,7 +22,8 @@ Imports:
     flextable,
     patchwork,
     pROC,
-    devEMF
+    devEMF,
+    grid
 Suggests:
     ragg,
     testthat (>= 3.1.5)
