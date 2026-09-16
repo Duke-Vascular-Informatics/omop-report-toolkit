@@ -25,6 +25,7 @@ export(.save_dual_roc_plot)
 export(.save_calibration_plot_from_table)
 export(.save_calibration_plot_from_vectors)
 export(.save_dual_calibration_plot)
+export(.save_consort_flow_plot)
 export(.build_table1)
 export(.strip_heading_autonumbering)
 

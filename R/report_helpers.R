@@ -662,3 +662,134 @@
 
   invisible(docx_path)
 }
+
+
+# -----------------------------------------------------------------------------
+# .save_consort_flow_plot()
+#
+# A generic CONSORT-style patient-flow diagram for a purely SEQUENTIAL
+# (non-branching) cohort funnel -- a single column of "n remaining" boxes,
+# top to bottom, each with a small "Excluded: N" side-box branching right at
+# every transition. Box positions are computed from `nrow(flow)`, not hand-
+# placed, which is the whole reason this is a shared, reusable function
+# rather than a copy of pad-ler-ldl-desc's own CONSORT diagram (that one is
+# a branching, multi-way tree with every box's x/y and every connector's
+# elbow route hand-coded to its own specific topology -- appropriate for a
+# one-off complex shape, not something a second study can parameterize into
+# without redoing the layout by hand). A study whose own attrition is a
+# tree, not a chain, still needs its own hand-built diagram; this covers the
+# common simpler case.
+#
+# Arguments:
+#   flow          - data.frame(stage, n[, reason]), >= 2 rows, in funnel
+#                   order (largest n first). `reason` is optional -- when
+#                   present, its value at row i+1 labels the exclusion
+#                   branch leading INTO stage i+1 (e.g. the inclusion-rule
+#                   name that removed those patients). Missing/NA reasons
+#                   fall back to a bare "Excluded (n = ...)" label.
+#   output_folder - directory to write into (created if missing, via
+#                   save_figure()).
+#   file_name     - passed to save_figure() (any extension; see that
+#                   function's own header for how the stem is derived).
+#   width, height - figure size in inches. height defaults to a value that
+#                   scales with the number of stages so the boxes never
+#                   overlap regardless of funnel length.
+#
+# Returns the path save_figure() returns (a vector .emf as of the
+# 2026-09-15 vector-figures change), or NULL if `flow` is unusable.
+# -----------------------------------------------------------------------------
+.save_consort_flow_plot <- function(flow, output_folder,
+                                    file_name = "consort_flow.png",
+                                    width = 6.0, height = NULL) {
+  if (is.null(flow) || nrow(flow) < 2 || !all(c("stage", "n") %in% names(flow))) {
+    message("[report] CONSORT flow plot skipped: needs a data.frame(stage, n) with >= 2 rows.")
+    return(NULL)
+  }
+
+  n_stages <- nrow(flow)
+  if (is.null(height)) height <- max(5.0, 1.2 + n_stages * 1.15)
+
+  box_w  <- 3.4
+  box_h  <- 0.7
+  y_gap  <- 1.3
+  main_x <- 0
+  side_x <- main_x + box_w / 2 + 2.0
+  side_w <- 2.6
+
+  main_y <- rev(seq_len(n_stages)) * y_gap
+
+  fmt_n <- function(x) if (is.na(x)) "N/A" else format(x, big.mark = ",")
+
+  main_boxes <- data.frame(
+    x = main_x, y = main_y, w = box_w, h = box_h,
+    label = sprintf("%s\n(n = %s)", flow$stage, vapply(flow$n, fmt_n, character(1))),
+    stringsAsFactors = FALSE
+  )
+
+  side_boxes  <- NULL
+  connectors  <- list()
+  for (i in seq_len(n_stages - 1)) {
+    excluded_n <- flow$n[i] - flow$n[i + 1]
+    reason <- if ("reason" %in% names(flow) && !is.na(flow$reason[i + 1])) flow$reason[i + 1] else NA
+    label  <- if (!is.na(reason)) sprintf("Excluded: %s\n(n = %s)", reason, fmt_n(excluded_n))
+              else sprintf("Excluded\n(n = %s)", fmt_n(excluded_n))
+    y_mid <- (main_y[i] + main_y[i + 1]) / 2
+
+    side_boxes <- rbind(side_boxes, data.frame(
+      x = side_x, y = y_mid, w = side_w, h = box_h, label = label,
+      stringsAsFactors = FALSE
+    ))
+    # Main column: one straight segment per transition (not one long path for
+    # the whole column), so each arrowhead lands exactly at the next box's
+    # top edge rather than only the very last one.
+    connectors[[length(connectors) + 1]] <- data.frame(
+      group = paste0("main", i), kind = "main",
+      x = c(main_x, main_x), y = c(main_y[i] - box_h / 2, main_y[i + 1] + box_h / 2)
+    )
+    # Side branch: a single horizontal segment from the main column (it
+    # already has a vertical line passing through x = main_x at this y) out
+    # to the exclusion box's LEFT EDGE (not its center -- an arrow landing
+    # mid-box draws on top of the label text, since geom_path is layered
+    # after geom_rect/geom_text below) -- a plain perpendicular "T", not an
+    # elbow, since every side box sits at the same y as the main-column
+    # segment it branches from (no branching, unlike pad-ler-ldl-desc's tree).
+    connectors[[length(connectors) + 1]] <- data.frame(
+      group = paste0("side", i), kind = "side",
+      x = c(main_x, side_x - side_w / 2), y = c(y_mid, y_mid)
+    )
+  }
+  connectors <- do.call(rbind, connectors)
+
+  all_boxes <- rbind(main_boxes, side_boxes)
+
+  p <- ggplot2::ggplot() +
+    ggplot2::geom_rect(
+      data = all_boxes,
+      mapping = ggplot2::aes(xmin = x - w / 2, xmax = x + w / 2,
+                             ymin = y - h / 2, ymax = y + h / 2),
+      fill = "white", color = "black"
+    ) +
+    ggplot2::geom_text(
+      data = all_boxes, mapping = ggplot2::aes(x = x, y = y, label = label),
+      size = 3, lineheight = 0.9
+    ) +
+    ggplot2::geom_path(
+      data = connectors[connectors$kind == "main", , drop = FALSE],
+      mapping = ggplot2::aes(x = x, y = y, group = group),
+      arrow = ggplot2::arrow(length = grid::unit(0.08, "in"), type = "closed"),
+      color = "grey40"
+    ) +
+    ggplot2::geom_path(
+      data = connectors[connectors$kind == "side", , drop = FALSE],
+      mapping = ggplot2::aes(x = x, y = y, group = group),
+      arrow = ggplot2::arrow(length = grid::unit(0.08, "in"), type = "closed"),
+      color = "grey40"
+    ) +
+    ggplot2::coord_cartesian(
+      xlim = c(main_x - box_w / 2 - 0.2, side_x + side_w / 2 + 0.2),
+      ylim = c(min(main_y) - box_h, max(main_y) + box_h)
+    ) +
+    ggplot2::theme_void()
+
+  save_figure(p, output_folder, file_name, width = width, height = height)
+}
