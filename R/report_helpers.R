@@ -707,36 +707,68 @@
   }
 
   n_stages <- nrow(flow)
-  if (is.null(height)) height <- max(5.0, 1.2 + n_stages * 1.15)
 
   box_w  <- 3.4
-  box_h  <- 0.7
-  y_gap  <- 1.3
   main_x <- 0
   side_x <- main_x + box_w / 2 + 2.0
   side_w <- 2.6
 
-  main_y <- rev(seq_len(n_stages)) * y_gap
-
   fmt_n <- function(x) if (is.na(x)) "N/A" else format(x, big.mark = ",")
 
+  # Wrap text to the box's own width instead of letting one long line run
+  # past the box -- and, for the side boxes, off the right edge of the
+  # plot entirely. A real exclusion reason like "Admitted from hospital
+  # transfer or skilled nursing facility" is far wider than side_w at any
+  # readable font size; ~11 characters per inch is a deliberately
+  # conservative estimate for the 3pt ggplot2 label size below (roughly
+  # 8.5pt rendered) -- it errs toward wrapping a little early (an extra
+  # short line) rather than risking a line still too wide for the box.
+  wrap_text <- function(text, box_width_in) {
+    w <- max(10L, floor(box_width_in * 11))
+    vapply(text, function(t) paste(strwrap(t, width = w), collapse = "\n"),
+           character(1), USE.NAMES = FALSE)
+  }
+
+  main_labels <- sprintf("%s\n(n = %s)",
+                         wrap_text(flow$stage, box_w),
+                         vapply(flow$n, fmt_n, character(1)))
+
+  side_labels <- character(n_stages - 1)
+  for (i in seq_len(n_stages - 1)) {
+    excluded_n <- flow$n[i] - flow$n[i + 1]
+    reason <- if ("reason" %in% names(flow) && !is.na(flow$reason[i + 1])) flow$reason[i + 1] else NA
+    side_labels[i] <- if (!is.na(reason)) {
+      sprintf("%s\n(n = %s)", wrap_text(paste0("Excluded: ", reason), side_w), fmt_n(excluded_n))
+    } else {
+      sprintf("Excluded\n(n = %s)", fmt_n(excluded_n))
+    }
+  }
+
+  # Box height and row spacing both grow with the tallest wrapped label so a
+  # multi-line exclusion reason never overlaps its own box border or the
+  # next row -- a fixed 0.7in box (this function's original size, still
+  # what a 1-2 line label gets) only ever fit about two lines.
+  n_lines <- function(labels) lengths(strsplit(labels, "\n", fixed = TRUE))
+  max_lines <- max(n_lines(main_labels), n_lines(side_labels))
+  box_h <- max(0.7, 0.22 * max_lines + 0.15)
+  y_gap <- max(1.3, box_h + 0.6)
+
+  if (is.null(height)) height <- max(5.0, 1.0 + n_stages * y_gap)
+
+  main_y <- rev(seq_len(n_stages)) * y_gap
+
   main_boxes <- data.frame(
-    x = main_x, y = main_y, w = box_w, h = box_h,
-    label = sprintf("%s\n(n = %s)", flow$stage, vapply(flow$n, fmt_n, character(1))),
+    x = main_x, y = main_y, w = box_w, h = box_h, label = main_labels,
     stringsAsFactors = FALSE
   )
 
   side_boxes  <- NULL
   connectors  <- list()
   for (i in seq_len(n_stages - 1)) {
-    excluded_n <- flow$n[i] - flow$n[i + 1]
-    reason <- if ("reason" %in% names(flow) && !is.na(flow$reason[i + 1])) flow$reason[i + 1] else NA
-    label  <- if (!is.na(reason)) sprintf("Excluded: %s\n(n = %s)", reason, fmt_n(excluded_n))
-              else sprintf("Excluded\n(n = %s)", fmt_n(excluded_n))
     y_mid <- (main_y[i] + main_y[i + 1]) / 2
 
     side_boxes <- rbind(side_boxes, data.frame(
-      x = side_x, y = y_mid, w = side_w, h = box_h, label = label,
+      x = side_x, y = y_mid, w = side_w, h = box_h, label = side_labels[i],
       stringsAsFactors = FALSE
     ))
     # Main column: one straight segment per transition (not one long path for
