@@ -93,3 +93,7 @@ byte-identical to that source; only package-boundary changes were made
 (`library()` calls removed, bare calls resolved via `NAMESPACE` imports).
 `pad-amp-nhd-prog` consumed the same functions via direct file copy before
 this package existed; both studies are this package's first two consumers.
+
+## License
+
+Copyright 2026 Duke University. All Rights Reserved. The software is hereby licensed under the GNU GPL License v2 (see [LICENSE](LICENSE)); `DESCRIPTION` declares `License: GPL-2`.
