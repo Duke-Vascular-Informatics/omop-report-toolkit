@@ -94,6 +94,24 @@ byte-identical to that source; only package-boundary changes were made
 `pad-amp-nhd-prog` consumed the same functions via direct file copy before
 this package existed; both studies are this package's first two consumers.
 
+## Dependencies and acknowledgements
+
+This package is a thin layer over several open-source R packages, and the work is theirs. We gratefully acknowledge their authors and maintainers. Each remains under its own license; none is redistributed in this repository, they are installed separately from CRAN.
+
+| Package | Used for | License | Maintainer |
+|---|---|---|---|
+| [ggplot2](https://ggplot2.tidyverse.org) | Constructing every figure | MIT + file LICENSE | Thomas Lin Pedersen |
+| [officer](https://davidgohel.github.io/officer/) | Building and editing the Word document, embedding figures | MIT + file LICENSE | David Gohel |
+| [flextable](https://davidgohel.github.io/flextable/) | Styled tables (e.g. Table 1) | GPL-3 | David Gohel |
+| [patchwork](https://patchwork.data-imaginist.com) | Composing multi-panel figures | MIT + file LICENSE | Thomas Lin Pedersen |
+| [pROC](https://xrobin.github.io/pROC/) | ROC curves and AUC | GPL (>= 3) | Xavier Robin |
+| [devEMF](https://github.com/plfjohnson/devEMF) | Vector EMF output for Word embedding | GPL-3 | Philip Johnson |
+| grid (part of base R) | Graphical units for figure annotations | Part of R (GPL-2 or GPL-3) | R Core Team |
+| [ragg](https://ragg.r-lib.org) *(suggested)* | High-resolution TIFF output when available | MIT + file LICENSE | Thomas Lin Pedersen |
+| [testthat](https://testthat.r-lib.org) *(suggested)* | Unit tests | MIT + file LICENSE | Hadley Wickham |
+
+Licenses above are as declared by the installed package versions at the time of writing (ggplot2 4.0.3, officer 0.7.6, flextable 0.10.0, patchwork 1.3.2, pROC 1.19.0.1, devEMF 4.6, ragg 1.5.2, testthat 3.3.2); check each package's own `DESCRIPTION` for the current terms. This package's own code is licensed under GPL v2 only (see below); that applies to this repository's code, not to the packages listed here.
+
 ## License
 
 Copyright 2026 Duke University. All Rights Reserved. The software is hereby licensed under the GNU GPL License v2 (see [LICENSE](LICENSE)); `DESCRIPTION` declares `License: GPL-2`.
