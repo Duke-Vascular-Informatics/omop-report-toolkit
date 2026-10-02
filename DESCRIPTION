@@ -13,7 +13,7 @@ Description: Greyscale-safe manuscript figure styling and generic Word-report
     intentionally NOT part of this package; it lives in that study's own
     <study>-report repo (scaffolded from omop-report-template) that calls
     into this one.
-License: GPL-3
+License: GPL-2
 Encoding: UTF-8
 Depends: R (>= 4.1.0)
 Imports:
