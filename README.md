@@ -1,5 +1,7 @@
 # omopReportToolkit
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23190587.svg)](https://doi.org/10.5281/zenodo.23190587)
+
 Render-only manuscript report toolkit for OMOP CDM studies in the
 [charon](https://github.com/Duke-Vascular-Informatics/charon)-based workspaces. Bucket 3 of the
 [Multi-Repo Analysis Pipeline](https://github.com/Duke-Vascular-Informatics/charon#multi-repo-analysis-pipeline)
@@ -112,6 +114,12 @@ This package is a thin layer over several open-source R packages, and the work i
 | [testthat](https://testthat.r-lib.org) *(suggested)* | Unit tests | MIT + file LICENSE | Hadley Wickham |
 
 Licenses above are as declared by the installed package versions at the time of writing (ggplot2 4.0.3, officer 0.7.6, flextable 0.10.0, patchwork 1.3.2, pROC 1.19.0.1, devEMF 4.6, ragg 1.5.2, testthat 3.3.2); check each package's own `DESCRIPTION` for the current terms. This package's own code is licensed under GPL v2 only (see below); that applies to this repository's code, not to the packages listed here.
+
+## Funding
+
+Research reported in this publication was supported by the National Center For Advancing Translational Sciences of the National Institutes of Health under Award Number K12TR005435. The content is solely the responsibility of the authors and does not necessarily represent the official views of the National Institutes of Health.
+
+---
 
 ## License
 
