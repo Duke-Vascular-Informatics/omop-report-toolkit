@@ -1,9 +1,9 @@
 # omopReportToolkit
 
 Render-only manuscript report toolkit for OMOP CDM studies in the
-Duke-Vascular-Informatics workspace. Bucket 3 of
-[`docs/MIGRATION_PLAN_REPO_SPLIT.md`](https://github.com/Duke-Vascular-Informatics/omop-dev-workspace/blob/main/docs/MIGRATION_PLAN_REPO_SPLIT.md)
-in the `omop-dev-workspace` repo.
+[charon](https://github.com/Duke-Vascular-Informatics/charon)-based workspaces. Bucket 3 of the
+[Multi-Repo Analysis Pipeline](https://github.com/Duke-Vascular-Informatics/charon#multi-repo-analysis-pipeline)
+convention.
 
 ## What this is
 
@@ -24,8 +24,9 @@ VPN, no credentials, and no database driver.
 Nothing study-specific lives here: no cohort definitions, no score names, no
 clinical narrative, no `fetch_*_from_omop()` queries. Per-study report
 composition — which tables, which figures, in what order, with what
-narrative — belongs in that study's own `<study>-report` repo (bucket 3b of
-`docs/MIGRATION_PLAN_REPO_SPLIT.md` in `omop-dev-workspace`, scaffolded from
+narrative — belongs in that study's own `<study>-report` repo (bucket 3b of the
+[Multi-Repo Analysis Pipeline](https://github.com/Duke-Vascular-Informatics/charon#multi-repo-analysis-pipeline),
+scaffolded from
 [`omop-report-template`](https://github.com/Duke-Vascular-Informatics/omop-report-template)),
 which calls into this package. **Not** a `report_spec.R` file inside the
 analysis-core repo — that was this plan's original design and was reversed
