@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use this software in your research, please cite it using the metadata below."
+type: software
+title: "omopReportToolkit: Render-Only Manuscript Report Helpers for OMOP CDM Studies"
+abstract: >
+  An R package of greyscale-safe manuscript figure styling and generic
+  Word-report helpers (bibliography formatting, calibration statistics,
+  ROC/calibration figures, a styled Table 1 flextable, docx post-processing)
+  shared across OMOP CDM study repositories. It consumes only result artifacts
+  already on disk and never opens a database connection, so a report can be
+  rendered with no VPN, credentials, or database driver.
+authors:
+  - family-names: Johnson
+    given-names: Adam P.
+    name-suffix: MD, MPH
+    email: adam.johnson@duke.edu
+    orcid: https://orcid.org/0000-0002-3014-6372
+    affiliation: Duke University School of Medicine, Department of Surgery
+    # Secondary affiliation(s): Durham VA Medical Center
+    # CFF 1.2.0 does not support multiple affiliations per author entry.
+repository-code: "https://github.com/Duke-Vascular-Informatics/omop-report-toolkit"
+license: GPL-2.0-only
+keywords:
+  - OMOP CDM
+  - OHDSI
+  - R package
+  - manuscript reporting
+  - reproducible research
