@@ -71,7 +71,7 @@
 #
 # It is the preferred TIFF device (best text rendering), but it compiles
 # against system libraries - libpng, libtiff, freetype, harfbuzz, fribidi.
-# Some analytic environments (e.g. a PRCC bundle installer that only does
+# Some analytic environments (e.g. a deployment-bundle installer that only does
 # `module load R` with no system-package provisioning) may legitimately fail
 # to install it. A hard dependency would then abort the entire analysis at
 # load time over a figure-device preference, after every other package had
